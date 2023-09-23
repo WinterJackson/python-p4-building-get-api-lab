@@ -20,19 +20,65 @@ def index():
 
 @app.route('/bakeries')
 def bakeries():
-    return ''
+    try:
+        # Query all bakeries from the database
+        bakeries = Bakery.query.all()
+
+        # Serialize the bakeries into JSON format, including 'created_at'
+        bakery_list = [
+            {
+                "id": bakery.id,
+                "name": bakery.name,
+                "created_at": bakery.created_at.strftime("%Y-%m-%d %H:%M:%S")  # Format as string
+            }
+            for bakery in bakeries
+        ]
+
+        # Return the JSON response as a list
+        return jsonify(bakery_list)
+
+    except Exception as e:
+        # Handle any exceptions or errors here
+        return jsonify(error=str(e)), 500
 
 @app.route('/bakeries/<int:id>')
 def bakery_by_id(id):
-    return ''
+
+    bakery = Bakery.query.filter_by(id=id).first()
+    bakery_serialized = bakery.to_dict()
+
+    response = make_response(
+        jsonify(bakery_serialized),
+        200
+    )
+    response.headers['Content-Type'] = 'application/json'
+    return response
 
 @app.route('/baked_goods/by_price')
 def baked_goods_by_price():
-    return ''
+    baked_goods_by_price = BakedGood.query.order_by(BakedGood.price).all()
+    baked_goods_by_price_serialized = [
+        bg.to_dict() for bg in baked_goods_by_price
+    ]
+    
+    response = make_response(
+        jsonify(baked_goods_by_price_serialized),
+        200
+    )
+    response.headers['Content-Type'] = 'application/json'
+    return response
 
 @app.route('/baked_goods/most_expensive')
 def most_expensive_baked_good():
-    return ''
+    most_expensive = BakedGood.query.order_by(BakedGood.price.desc()).limit(1).first()
+    most_expensive_serialized = most_expensive.to_dict()
+
+    response = make_response(
+        jsonify(most_expensive_serialized),
+        200
+    )
+    response.headers['Content-Type'] = 'application/json'
+    return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
